@@ -4,8 +4,7 @@
 #include <libgen.h>
 #include "utf8proc.h"
 
-#define PATH_MAX 1000
-#define STR_BUFFER 2000
+#define STR_BUFFER 2048
 
 enum LogLevel {
     ERROR,
@@ -14,6 +13,7 @@ enum LogLevel {
     VERBOSE,
     DEBUG,
 };
+
 
 enum NormalizationForm {
     NFC,
@@ -37,17 +37,13 @@ void LOG(char *str, enum LogLevel level);
 void print_help();
 
 int main(const int argc, char *argv[]) {
-    for (int i = 0; i < argc; i++) {
-        char *arg = argv[i];
-        printf("%s\n", arg);
-    }
+    char string[STR_BUFFER];
 
     if (argc <= 1) {
         print_help();
         exit(0);
     }
 
-    char string[STR_BUFFER];
     int c;
     while ((c = getopt(argc, argv, "hrvf:")) != -1) {
         switch (c) {
@@ -75,16 +71,20 @@ int main(const int argc, char *argv[]) {
                     exit(EXIT_FAILURE);
                 }
                 break;
+            default:
+                LOG("Error: unknown option.", ERROR);
+                exit(EXIT_FAILURE);
         }
     }
-
     char *file_path = argv[argc - 1];
-    LOG("File path:", VERBOSE);
-    LOG(file_path, VERBOSE);
+    sprintf(string, "File path: %s", file_path);
+    LOG(string, VERBOSE);
+
     FILE *f = fopen(file_path, "r");
     if (f == NULL) {
         LOG("Error: could not open file.", ERROR);
         exit(EXIT_FAILURE);
+    } else {
     }
 
     char abs_path[PATH_MAX];
@@ -95,16 +95,16 @@ int main(const int argc, char *argv[]) {
     char *new_path;
     switch (form) {
         case NFC:
-            new_path = utf8proc_NFC(abs_path);
+            new_path = (char *) utf8proc_NFC((uint8_t *) abs_path);
             break;
         case NFD:
-            new_path = utf8proc_NFD(abs_path);
+            new_path = (char *) utf8proc_NFD((uint8_t *) abs_path);
             break;
         case NFKC:
-            new_path = utf8proc_NFKC(abs_path);
+            new_path = (char *) utf8proc_NFKC((uint8_t *) abs_path);
             break;
         case NFKD:
-            new_path = utf8proc_NFKD(abs_path);
+            new_path = (char *) utf8proc_NFKD((uint8_t *) abs_path);
             break;
         default:
             LOG("Error: invalid form.", ERROR);
