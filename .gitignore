@@ -4,3 +4,4 @@ utf8proc.h
 
 test/
 cmake-build-debug/
+build/

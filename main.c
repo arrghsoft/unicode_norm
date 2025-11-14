@@ -37,6 +37,16 @@ void LOG(char *str, enum LogLevel level);
 void print_help();
 
 int main(const int argc, char *argv[]) {
+    for (int i = 0; i < argc; i++) {
+        char *arg = argv[i];
+        printf("%s\n", arg);
+    }
+
+    if (argc <= 1) {
+        print_help();
+        exit(0);
+    }
+
     char string[STR_BUFFER];
     int c;
     while ((c = getopt(argc, argv, "hrvf:")) != -1) {
@@ -69,6 +79,8 @@ int main(const int argc, char *argv[]) {
     }
 
     char *file_path = argv[argc - 1];
+    LOG("File path:", VERBOSE);
+    LOG(file_path, VERBOSE);
     FILE *f = fopen(file_path, "r");
     if (f == NULL) {
         LOG("Error: could not open file.", ERROR);
