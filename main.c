@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include "utf8proc.h"
+#include "version.h"
 
 #define STR_BUFFER 2048
 
@@ -122,12 +123,14 @@ int main(const int argc, char *argv[]) {
 
 void print_help() {
     printf(
-        "unicode_norm - Convert file name from some unicode normalization form to another form (NFC, NFD, NFKC, NFKD)\n\n"
+        "unicode_norm - Convert file name from some unicode normalization form to another form (NFC, NFD, NFKC, NFKD)\n"
+        "Version: %s (Compiled on %s at %s)"
+        "\n\n"
         "Usage: unicode_norm [-options] filepath\n"
         "-r, --recursive    Convert the directory recursively\n"
         "-v, --verbose      Verbose mode\n"
         "-h, --help         Display the help information\n"
-        "-f, --form         (defaults to \"NFC\")\n");
+        "-f, --form         (defaults to \"NFC\")\n", APP_VERSION, __DATE__, __TIME__);
 }
 
 void LOG(char *str, enum LogLevel level) {
