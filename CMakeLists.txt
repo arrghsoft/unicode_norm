@@ -6,7 +6,7 @@ configure_file(version.h.in version.h @ONLY)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(unicode_norm main.c)
+add_executable(unicode_norm unicode_norm.c)
 
 add_subdirectory(libs/utf8proc)
 target_include_directories(unicode_norm PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

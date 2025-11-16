@@ -2,6 +2,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <sys/stat.h>
+#include <fts.h>
+
 #include "utf8proc.h"
 #include "version.h"
 
@@ -14,7 +17,6 @@ enum LogLevel {
     VERBOSE,
     DEBUG,
 };
-
 
 enum NormalizationForm {
     NFC,
@@ -32,14 +34,16 @@ static const char *form_names[] = {
 
 int form = NFC;
 int global_log_level = INFO;
+bool is_recursive = false;
 
 void LOG(char *str, enum LogLevel level);
 
 void print_help();
 
+void rename_file(const char *file_path);
+
 int main(const int argc, char *argv[]) {
     char string[STR_BUFFER];
-
     if (argc <= 1) {
         print_help();
         exit(0);
@@ -52,8 +56,8 @@ int main(const int argc, char *argv[]) {
                 print_help();
                 return 0;
             case 'r':
-                LOG("Recursive mode not yet supported!", ERROR);
-                exit(EXIT_FAILURE);
+                is_recursive = true;
+                break;
             case 'v':
                 global_log_level = VERBOSE;
                 break;
@@ -77,6 +81,7 @@ int main(const int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
         }
     }
+
     char *file_path = argv[argc - 1];
     sprintf(string, "File path: %s", file_path);
     LOG(string, VERBOSE);
@@ -85,38 +90,36 @@ int main(const int argc, char *argv[]) {
     if (f == NULL) {
         LOG("Error: could not open file.", ERROR);
         exit(EXIT_FAILURE);
+    }
+
+    if (!is_recursive) {
+        // struct stat file_stat;
+        // stat(file_path, &file_stat);
+        // if (S_ISDIR(file_stat.st_mode) && is_recursive == false) {
+        //     LOG("Error: file is a directory. Use recursive option.", ERROR);
+        // }
+        rename_file(file_path);
     } else {
-    }
+        FTS *file_hierarchy = NULL;
+        FTSENT *node = NULL;
 
-    char abs_path[PATH_MAX];
-    if (realpath(file_path, abs_path) == NULL) {
-        perror("realpath");
-    }
-
-    char *new_path;
-    switch (form) {
-        case NFC:
-            new_path = (char *) utf8proc_NFC((uint8_t *) abs_path);
-            break;
-        case NFD:
-            new_path = (char *) utf8proc_NFD((uint8_t *) abs_path);
-            break;
-        case NFKC:
-            new_path = (char *) utf8proc_NFKC((uint8_t *) abs_path);
-            break;
-        case NFKD:
-            new_path = (char *) utf8proc_NFKD((uint8_t *) abs_path);
-            break;
-        default:
-            LOG("Error: invalid form.", ERROR);
+        file_hierarchy = fts_open(argv + argc - 1, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
+        if (!file_hierarchy) {
+            perror("fts_open");
             exit(EXIT_FAILURE);
+        }
+
+        while ((node = fts_read(file_hierarchy))) {
+            if (node->fts_info == FTS_D) {
+                continue;
+            }
+            sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
+            LOG(string, DEBUG);
+            rename_file(node->fts_path);
+        }
+
+        fts_close(file_hierarchy);
     }
-    rename(abs_path, new_path);
-
-    sprintf(string, "Successfully renamed to %s form", form_names[form]);
-    LOG(string, INFO);
-
-    free(new_path);
 
     return 0;
 }
@@ -155,4 +158,39 @@ void LOG(char *str, enum LogLevel level) {
             printf("\x1B[32m%s\x1B[0m\n", str);
             break;
     }
+}
+
+void rename_file(const char *file_path) {
+    char string[STR_BUFFER];
+
+    char abs_path[PATH_MAX];
+    if (realpath(file_path, abs_path) == NULL) {
+        perror("realpath");
+    }
+
+    char *new_path;
+    switch (form) {
+        case NFC:
+            new_path = (char *) utf8proc_NFC((uint8_t *) abs_path);
+            break;
+        case NFD:
+            new_path = (char *) utf8proc_NFD((uint8_t *) abs_path);
+            break;
+        case NFKC:
+            new_path = (char *) utf8proc_NFKC((uint8_t *) abs_path);
+            break;
+        case NFKD:
+            new_path = (char *) utf8proc_NFKD((uint8_t *) abs_path);
+            break;
+        default:
+            LOG("Error: invalid form.", ERROR);
+            exit(EXIT_FAILURE);
+    }
+
+    rename(abs_path, new_path);
+
+    sprintf(string, "Successfully renamed to %s form", form_names[form]);
+    LOG(string, INFO);
+
+    free(new_path);
 }
