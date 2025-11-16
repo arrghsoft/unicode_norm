@@ -10,14 +10,6 @@
 
 #define STR_BUFFER 2048
 
-enum LogLevel {
-    ERROR,
-    WARNING,
-    INFO,
-    VERBOSE,
-    DEBUG,
-};
-
 enum NormalizationForm {
     NFC,
     NFD,
@@ -32,15 +24,30 @@ static const char *form_names[] = {
     "NFKD"
 };
 
+enum LogLevel {
+    ERROR,
+    WARNING,
+    INFO,
+    VERBOSE,
+    DEBUG
+};
+
+static const char *log_level_names[] = {
+    "ERROR",
+    "WARNING",
+    "INFO",
+    "VERBOSE",
+    "DEBUG"
+};
+
 int form = NFC;
 int global_log_level = INFO;
 bool is_recursive = false;
 
-void LOG(char *str, enum LogLevel level);
-
 void print_help();
-
+void print_log(char *str, enum LogLevel level);
 void rename_file(const char *file_path);
+void parse_form();
 
 int main(const int argc, char *argv[]) {
     char string[STR_BUFFER];
@@ -62,42 +69,25 @@ int main(const int argc, char *argv[]) {
                 global_log_level = VERBOSE;
                 break;
             case 'f':
-                if (strcmp(optarg, "NFC") == 0) {
-                    form = NFC;
-                } else if (strcmp(optarg, "NFD") == 0) {
-                    form = NFD;
-                } else if (strcmp(optarg, "NFKC") == 0) {
-                    form = NFKC;
-                } else if (strcmp(optarg, "NFKD") == 0) {
-                    form = NFKD;
-                } else {
-                    LOG("Error: invalid normalization form. "
-                        "Form(--form, -f) should be one of 'NFC', 'NFD', 'NFKC', or 'NFKD'.", ERROR);
-                    exit(EXIT_FAILURE);
-                }
+                parse_form();
                 break;
             default:
-                LOG("Error: unknown option.", ERROR);
+                print_log("Error: unknown option.", ERROR);
                 exit(EXIT_FAILURE);
         }
     }
 
     char *file_path = argv[argc - 1];
     sprintf(string, "File path: %s", file_path);
-    LOG(string, VERBOSE);
+    print_log(string, DEBUG);
 
     FILE *f = fopen(file_path, "r");
     if (f == NULL) {
-        LOG("Error: could not open file.", ERROR);
+        print_log("Error: could not open file.", ERROR);
         exit(EXIT_FAILURE);
     }
 
     if (!is_recursive) {
-        // struct stat file_stat;
-        // stat(file_path, &file_stat);
-        // if (S_ISDIR(file_stat.st_mode) && is_recursive == false) {
-        //     LOG("Error: file is a directory. Use recursive option.", ERROR);
-        // }
         rename_file(file_path);
     } else {
         FTS *file_hierarchy = NULL;
@@ -114,7 +104,7 @@ int main(const int argc, char *argv[]) {
                 continue;
             }
             sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
-            LOG(string, DEBUG);
+            print_log(string, DEBUG);
             rename_file(node->fts_path);
         }
 
@@ -136,7 +126,7 @@ void print_help() {
         "-f, --form         (defaults to \"NFC\")\n", APP_VERSION, __DATE__, __TIME__);
 }
 
-void LOG(char *str, enum LogLevel level) {
+void print_log(char *str, enum LogLevel level) {
     if (level > global_log_level) {
         return;
     }
@@ -183,14 +173,27 @@ void rename_file(const char *file_path) {
             new_path = (char *) utf8proc_NFKD((uint8_t *) abs_path);
             break;
         default:
-            LOG("Error: invalid form.", ERROR);
+            print_log("Error: invalid form.", ERROR);
             exit(EXIT_FAILURE);
     }
-
     rename(abs_path, new_path);
-
-    sprintf(string, "Successfully renamed to %s form", form_names[form]);
-    LOG(string, INFO);
-
+    sprintf(string, "Successfully renamed %s to %s form", file_path, form_names[form]);
+    print_log(string, VERBOSE);
     free(new_path);
+}
+
+void parse_form() {
+    if (strcmp(optarg, "NFC") == 0) {
+        form = NFC;
+    } else if (strcmp(optarg, "NFD") == 0) {
+        form = NFD;
+    } else if (strcmp(optarg, "NFKC") == 0) {
+        form = NFKC;
+    } else if (strcmp(optarg, "NFKD") == 0) {
+        form = NFKD;
+    } else {
+        print_log("Error: invalid normalization form. "
+                  "Form(--form, -f) should be one of 'NFC', 'NFD', 'NFKC', or 'NFKD'.", ERROR);
+        exit(EXIT_FAILURE);
+    }
 }
