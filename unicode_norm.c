@@ -85,38 +85,40 @@ int main(const int argc, char *argv[]) {
         }
     }
 
-    char *file_path = argv[argc - 1];
-    sprintf(string, "File path: %s", file_path);
-    print_log(string, DEBUG);
+    for (int i = optind; i < argc; i++) {
+        char *file_path = argv[i];
+        sprintf(string, "File path: %s", file_path);
+        print_log(string, DEBUG);
 
-    FILE *f = fopen(file_path, "r");
-    if (f == NULL) {
-        print_log("Error: could not open file.", ERROR);
-        exit(EXIT_FAILURE);
-    }
-
-    if (!is_recursive) {
-        rename_file(file_path);
-    } else {
-        FTS *file_hierarchy = NULL;
-        FTSENT *node = NULL;
-
-        file_hierarchy = fts_open(argv + argc - 1, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
-        if (!file_hierarchy) {
-            perror("fts_open");
+        FILE *f = fopen(file_path, "r");
+        if (f == NULL) {
+            print_log("Error: could not open file.", ERROR);
             exit(EXIT_FAILURE);
         }
 
-        while ((node = fts_read(file_hierarchy))) {
-            if (node->fts_info == FTS_D) {
-                continue;
-            }
-            sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
-            print_log(string, DEBUG);
-            rename_file(node->fts_path);
-        }
+        if (!is_recursive) {
+            rename_file(file_path);
+        } else {
+            FTS *file_hierarchy = NULL;
+            FTSENT *node = NULL;
 
-        fts_close(file_hierarchy);
+            file_hierarchy = fts_open(argv + argc - 1, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
+            if (!file_hierarchy) {
+                perror("fts_open");
+                exit(EXIT_FAILURE);
+            }
+
+            while ((node = fts_read(file_hierarchy))) {
+                if (node->fts_info == FTS_D) {
+                    continue;
+                }
+                sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
+                print_log(string, DEBUG);
+                rename_file(node->fts_path);
+            }
+
+            fts_close(file_hierarchy);
+        }
     }
 
     return 0;
