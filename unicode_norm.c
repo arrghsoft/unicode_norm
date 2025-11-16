@@ -4,6 +4,7 @@
 #include <libgen.h>
 #include <sys/stat.h>
 #include <fts.h>
+#include <getopt.h>
 
 #include "utf8proc.h"
 #include "version.h"
@@ -40,6 +41,13 @@ static const char *log_level_names[] = {
     "DEBUG"
 };
 
+static const struct option long_opts[] = {
+    { "help", 0, NULL, 'h'},
+    { "recursive", 0, NULL, 'r'},
+    { "verbose", 0, NULL, 'v'},
+    { "form", 1, NULL, 'f'},
+};
+
 int form = NFC;
 int global_log_level = INFO;
 bool is_recursive = false;
@@ -57,7 +65,7 @@ int main(const int argc, char *argv[]) {
     }
 
     int c;
-    while ((c = getopt(argc, argv, "hrvf:")) != -1) {
+    while ((c = getopt_long(argc, argv, "hrvf:", long_opts, NULL)) != -1) {
         switch (c) {
             case 'h':
                 print_help();
