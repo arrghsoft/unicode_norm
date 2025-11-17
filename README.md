@@ -5,6 +5,11 @@ cmake -S . -B build
 cmake --build build
 ```
 
+Use the following commands to build with dynamically linked libraries.
+```bash
+cmake -S . -B build -DUNICODE_NORM_LIBRARY_STATIC_LINK=OFF
+cmake --build build
+```
 
 ## Install
 
