@@ -10,6 +10,7 @@
 #include "version.h"
 
 #define STR_BUFFER 2048
+#define LOG_LEVEL INFO
 
 enum NormalizationForm {
     NFC,
@@ -33,29 +34,25 @@ enum LogLevel {
     DEBUG
 };
 
-static const char *log_level_names[] = {
-    "ERROR",
-    "WARNING",
-    "INFO",
-    "VERBOSE",
-    "DEBUG"
-};
-
 static const struct option long_opts[] = {
     { "help", 0, NULL, 'h'},
     { "recursive", 0, NULL, 'r'},
     { "verbose", 0, NULL, 'v'},
     { "form", 1, NULL, 'f'},
+    { "check", 0, NULL, 'c'},
+    { "dry-run", 0, NULL, 'd'},
 };
 
 int form = NFC;
-int global_log_level = INFO;
+int global_log_level = LOG_LEVEL;
 bool is_recursive = false;
+bool is_dry_run = false;
 
 void print_help();
 void print_log(char *str, enum LogLevel level);
 void rename_file(const char *file_path);
 void parse_form();
+char* convert_to_form(char *path, enum NormalizationForm form);
 
 int main(const int argc, char *argv[]) {
     char string[STR_BUFFER];
@@ -65,7 +62,7 @@ int main(const int argc, char *argv[]) {
     }
 
     int c;
-    while ((c = getopt_long(argc, argv, "hrvf:", long_opts, NULL)) != -1) {
+    while ((c = getopt_long(argc, argv, "hrvf:cd", long_opts, NULL)) != -1) {
         switch (c) {
             case 'h':
                 print_help();
@@ -78,6 +75,10 @@ int main(const int argc, char *argv[]) {
                 break;
             case 'f':
                 parse_form();
+                break;
+            case 'd':
+            case 'c':
+                is_dry_run = true;
                 break;
             default:
                 print_log("Error: unknown option.", ERROR);
@@ -126,14 +127,17 @@ int main(const int argc, char *argv[]) {
 
 void print_help() {
     printf(
-        "unicode_norm - Convert file name from some unicode normalization form to another form (NFC, NFD, NFKC, NFKD)\n"
+        "unicode_norm - Normalize file names to a specified Unicode normalization form (NFC, NFD, NFKC, NFKD)\n"
         "Version: %s (Compiled on %s at %s)"
         "\n\n"
-        "Usage: unicode_norm [-options] filepath\n"
+        "Usage: unicode_norm [-options] FILE...\n"
+        "-f, --form         (defaults to \"NFC\")\n"
         "-r, --recursive    Convert the directory recursively\n"
+        "-d, --dry-run      Show the changes that would be made, but do not modify files.\n"
+        "-c, --check        Synonym of dry-run\n"
         "-v, --verbose      Verbose mode\n"
-        "-h, --help         Display the help information\n"
-        "-f, --form         (defaults to \"NFC\")\n", APP_VERSION, __DATE__, __TIME__);
+        "-h, --help         Display the help information\n",
+        APP_VERSION, __DATE__, __TIME__);
 }
 
 void print_log(char *str, enum LogLevel level) {
@@ -143,10 +147,10 @@ void print_log(char *str, enum LogLevel level) {
 
     switch (level) {
         case ERROR:
-            printf("\x1B[31m%s\x1B[0m\n", str);
+            fprintf(stderr, "\x1B[31m%s\x1B[0m\n", str);
             break;
         case WARNING:
-            printf("\x1B[33m%s\x1B[0m\n", str);
+            fprintf(stderr, "\x1B[33m%s\x1B[0m\n", str);
             break;
         case INFO:
             printf("%s\n", str);
@@ -160,6 +164,28 @@ void print_log(char *str, enum LogLevel level) {
     }
 }
 
+char* convert_to_form(char *path, enum NormalizationForm form) {
+    char* new_path;
+    switch (form) {
+        case NFC:
+            new_path = (char *) utf8proc_NFC((uint8_t *) path);
+            break;
+        case NFD:
+            new_path = (char *) utf8proc_NFD((uint8_t *) path);
+            break;
+        case NFKC:
+            new_path = (char *) utf8proc_NFKC((uint8_t *) path);
+            break;
+        case NFKD:
+            new_path = (char *) utf8proc_NFKD((uint8_t *) path);
+            break;
+        default:
+            print_log("Error: invalid form.", ERROR);
+            exit(EXIT_FAILURE);
+    }
+    return new_path;
+}
+
 void rename_file(const char *file_path) {
     char string[STR_BUFFER];
 
@@ -168,27 +194,38 @@ void rename_file(const char *file_path) {
         perror("realpath");
     }
 
-    char *new_path;
-    switch (form) {
-        case NFC:
-            new_path = (char *) utf8proc_NFC((uint8_t *) abs_path);
-            break;
-        case NFD:
-            new_path = (char *) utf8proc_NFD((uint8_t *) abs_path);
-            break;
-        case NFKC:
-            new_path = (char *) utf8proc_NFKC((uint8_t *) abs_path);
-            break;
-        case NFKD:
-            new_path = (char *) utf8proc_NFKD((uint8_t *) abs_path);
-            break;
-        default:
-            print_log("Error: invalid form.", ERROR);
-            exit(EXIT_FAILURE);
+    char *new_path = convert_to_form(abs_path, form);
+    string[0] = '\0';
+    strcat(string, "File is in form of ");
+    if (is_dry_run) {
+        bool form_check[NFKD + 1] = {false};
+        bool is_first = true;
+        for (int i = NFC; i < NFKD + 1; i++) {
+            char *path_check = convert_to_form(abs_path, i);
+            if (strcmp(abs_path, path_check) == 0) {
+                form_check[i] = true;
+                if (!is_first) {
+                    strcat(string, ", ");
+                } else {
+                    is_first = false;
+                }
+                strcat(string, form_names[i]);
+            }
+            free(path_check);
+        }
+        strcat(string, ": ");
+        strcat(string, file_path);
+        print_log(string, INFO);
     }
-    rename(abs_path, new_path);
-    sprintf(string, "Successfully renamed %s to %s form", file_path, form_names[form]);
-    print_log(string, VERBOSE);
+
+    if (strcmp(new_path, abs_path) == 0) {
+        sprintf(string, "[SKIP] file name already in %s form: %s", form_names[form], file_path);
+        print_log(string, INFO);
+    } else if (!is_dry_run) {
+        rename(abs_path, new_path);
+        sprintf(string, "[SUCCESS] Successfully renamed to %s form: %s", form_names[form], file_path);
+        print_log(string, INFO);
+    }
     free(new_path);
 }
 
