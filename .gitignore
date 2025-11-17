@@ -3,5 +3,6 @@ libutf8proc.a
 utf8proc.h
 
 test/
+tests/
 cmake-build-debug/
 build/

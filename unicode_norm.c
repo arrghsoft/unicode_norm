@@ -11,6 +11,7 @@
 
 #define STR_BUFFER 2048
 #define LOG_LEVEL INFO
+#define PATH_SEP_STR "/"
 
 enum NormalizationForm {
     NFC,
@@ -50,9 +51,9 @@ bool is_dry_run = false;
 
 void print_help();
 void print_log(char *str, enum LogLevel level);
-void rename_file(const char *file_path);
+bool rename_file(const char *file_path);
 void parse_form();
-char* convert_to_form(char *path, enum NormalizationForm form);
+void convert_to_form(char *path, enum NormalizationForm form, char *buffer);
 
 int main(const int argc, char *argv[]) {
     char string[STR_BUFFER];
@@ -102,6 +103,8 @@ int main(const int argc, char *argv[]) {
         } else {
             FTS *file_hierarchy = NULL;
             FTSENT *node = NULL;
+            int total_cnt = 0;
+            int updated_cnt = 0;
 
             file_hierarchy = fts_open(argv + argc - 1, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
             if (!file_hierarchy) {
@@ -115,10 +118,19 @@ int main(const int argc, char *argv[]) {
                 }
                 sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
                 print_log(string, DEBUG);
-                rename_file(node->fts_path);
+                bool updated = rename_file(node->fts_path);
+                updated_cnt += updated ? 1 : 0;
+                total_cnt++;
             }
 
             fts_close(file_hierarchy);
+            if (is_dry_run) {
+                sprintf(string, "Total files: %d, Files that would be updated: %d", total_cnt, updated_cnt);
+                print_log(string, INFO);
+            } else {
+                sprintf(string, "Total files: %d, Updated files: %d", total_cnt, updated_cnt);
+                print_log(string, INFO);
+            }
         }
     }
 
@@ -164,69 +176,89 @@ void print_log(char *str, enum LogLevel level) {
     }
 }
 
-char* convert_to_form(char *path, enum NormalizationForm form) {
-    char* new_path;
+void convert_to_form(char *path, enum NormalizationForm form, char *buffer) {
+    char* new_basename;
+
+    char* dir_part = dirname(path);
+    char* name_part = basename(path);
     switch (form) {
         case NFC:
-            new_path = (char *) utf8proc_NFC((uint8_t *) path);
+            new_basename = (char *) utf8proc_NFC((uint8_t *) name_part);
             break;
         case NFD:
-            new_path = (char *) utf8proc_NFD((uint8_t *) path);
+            new_basename = (char *) utf8proc_NFD((uint8_t *) name_part);
             break;
         case NFKC:
-            new_path = (char *) utf8proc_NFKC((uint8_t *) path);
+            new_basename = (char *) utf8proc_NFKC((uint8_t *) name_part);
             break;
         case NFKD:
-            new_path = (char *) utf8proc_NFKD((uint8_t *) path);
+            new_basename = (char *) utf8proc_NFKD((uint8_t *) name_part);
             break;
         default:
             print_log("Error: invalid form.", ERROR);
             exit(EXIT_FAILURE);
     }
-    return new_path;
+    buffer[0] = '\0';
+    strcat(buffer, dir_part);
+    strcat(buffer, PATH_SEP_STR);
+    strcat(buffer, new_basename);
+
+    free(new_basename);
 }
 
-void rename_file(const char *file_path) {
+bool rename_file(const char *file_path) {
     char string[STR_BUFFER];
+    char path_buffer[STR_BUFFER];
 
     char abs_path[PATH_MAX];
     if (realpath(file_path, abs_path) == NULL) {
         perror("realpath");
+        return false;
     }
 
-    char *new_path = convert_to_form(abs_path, form);
-    string[0] = '\0';
-    strcat(string, "File is in form of ");
+    char form_string[50];
+    form_string[0] = '\0';
     if (is_dry_run) {
-        bool form_check[NFKD + 1] = {false};
         bool is_first = true;
         for (int i = NFC; i < NFKD + 1; i++) {
-            char *path_check = convert_to_form(abs_path, i);
-            if (strcmp(abs_path, path_check) == 0) {
-                form_check[i] = true;
+            convert_to_form(abs_path, i, path_buffer);
+            if (strcmp(abs_path, path_buffer) == 0) {
                 if (!is_first) {
-                    strcat(string, ", ");
+                    strcat(form_string, ", ");
                 } else {
                     is_first = false;
                 }
-                strcat(string, form_names[i]);
+                strcat(form_string, form_names[i]);
             }
-            free(path_check);
         }
-        strcat(string, ": ");
-        strcat(string, file_path);
+        if (is_first) {
+            strcpy(form_string, "UNKNOWN");
+        }
+        sprintf(string, "File is in form of %s: %s", form_string, file_path);
+        print_log(string, DEBUG);
+    }
+    convert_to_form(abs_path, form, path_buffer);
+
+    if (is_dry_run) {
+        if (strcmp(path_buffer, abs_path) == 0) {
+            sprintf(string, "[SKIP] file name already in %s form: %s", form_names[form], file_path);
+            print_log(string, INFO);
+            return false;
+        }
+        sprintf(string, "[TARGET] This file will be renamed from %s form to %s form: %s", form_string, form_names[form], file_path);
         print_log(string, INFO);
+        return true;
     }
 
-    if (strcmp(new_path, abs_path) == 0) {
+    if (strcmp(path_buffer, abs_path) == 0) {
         sprintf(string, "[SKIP] file name already in %s form: %s", form_names[form], file_path);
         print_log(string, INFO);
-    } else if (!is_dry_run) {
-        rename(abs_path, new_path);
-        sprintf(string, "[SUCCESS] Successfully renamed to %s form: %s", form_names[form], file_path);
-        print_log(string, INFO);
+        return false;
     }
-    free(new_path);
+    rename(abs_path, path_buffer);
+    sprintf(string, "[SUCCESS] Successfully renamed from %s form to %s form: %s", form_string, form_names[form], file_path);
+    print_log(string, INFO);
+    return true;
 }
 
 void parse_form() {
