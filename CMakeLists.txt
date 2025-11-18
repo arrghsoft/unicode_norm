@@ -22,3 +22,6 @@ add_executable(unicode_norm unicode_norm.c)
 
 target_include_directories(unicode_norm PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(unicode_norm PRIVATE utf8proc)
+
+install(TARGETS unicode_norm
+    RUNTIME DESTINATION bin)
