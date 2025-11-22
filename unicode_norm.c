@@ -6,7 +6,7 @@
 #include <fts.h>
 #include <getopt.h>
 
-#include "utf8proc.h"
+#include <utf8proc.h>
 #include "version.h"
 
 #define STR_BUFFER 2048
