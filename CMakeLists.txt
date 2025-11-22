@@ -16,6 +16,8 @@ if (UNICODE_NORM_LIBRARY_STATIC_LINK)
 else()
     message(STATUS "Building utf8proc with DYNAMIC libraries")
     set(BUILD_SHARED_LIBS OFF)
+    include_directories(/usr/local/include)
+    link_directories(/usr/local/lib)
 endif()
 
 add_executable(unicode_norm unicode_norm.c)
