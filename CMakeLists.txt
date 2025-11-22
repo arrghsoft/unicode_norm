@@ -16,8 +16,17 @@ if (UNICODE_NORM_LIBRARY_STATIC_LINK)
 else()
     message(STATUS "Building utf8proc with DYNAMIC libraries")
     set(BUILD_SHARED_LIBS OFF)
-    include_directories(/usr/local/include)
-    link_directories(/usr/local/lib)
+
+    find_path(UTF8PROC_INCLUDE_DIR utf8proc.h
+            PATH_SUFFIXES include
+            PATHS /opt/homebrew /usr/local
+    )
+    find_library(UTF8PROC_LIBRARY utf8proc
+            PATH_SUFFIXES lib
+            PATHS /opt/homebrew /usr/local
+    )
+    target_include_directories(unicode_norm PRIVATE ${UTF8PROC_INCLUDE_DIR})
+    target_link_libraries(unicode_norm PRIVATE ${UTF8PROC_LIBRARY})
 endif()
 
 add_executable(unicode_norm unicode_norm.c)
