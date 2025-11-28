@@ -9,16 +9,19 @@ configure_file(version.h.in version.h @ONLY)
 
 set(CMAKE_C_STANDARD 11)
 
+add_executable(unicode_norm unicode_norm.c)
 if (UNICODE_NORM_LIBRARY_STATIC_LINK)
     message(STATUS "Building utf8proc with STATIC libraries")
     set(BUILD_SHARED_LIBS ON)
     add_subdirectory(libs/utf8proc)
+
+    # not working... put absolute path here to make it work
+    # target_link_libraries(unicode_norm PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/libs/utf8proc/libutf8proc.a)
 else()
     message(STATUS "Building utf8proc with DYNAMIC libraries")
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
-add_executable(unicode_norm unicode_norm.c)
 
 target_include_directories(unicode_norm PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(unicode_norm PRIVATE utf8proc)

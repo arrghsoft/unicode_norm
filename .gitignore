@@ -6,3 +6,5 @@ test/
 tests/
 cmake-build-debug/
 build/
+build_s/
+build_d/
