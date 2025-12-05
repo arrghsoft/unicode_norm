@@ -106,7 +106,7 @@ int main(const int argc, char *argv[]) {
             int total_cnt = 0;
             int updated_cnt = 0;
 
-            file_hierarchy = fts_open(argv + argc - 1, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
+            file_hierarchy = fts_open(argv + optind, FTS_NOCHDIR | FTS_COMFOLLOW, 0);
             if (!file_hierarchy) {
                 perror("fts_open");
                 exit(EXIT_FAILURE);
@@ -131,6 +131,7 @@ int main(const int argc, char *argv[]) {
                 sprintf(string, "Total files: %d, Updated files: %d", total_cnt, updated_cnt);
                 print_log(string, INFO);
             }
+            break;
         }
     }
 
