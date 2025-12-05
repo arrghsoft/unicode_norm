@@ -124,7 +124,7 @@ done
 
 # Step 7: Clean up
 echo "[7] Cleaning temporary files..."
- rm -rf "$TEST_DIR"
+rm -rf "$TEST_DIR"
 
 echo "===================================="
 echo " All tests PASSED 🌟"
