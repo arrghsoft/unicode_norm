@@ -65,9 +65,12 @@ declare -A EXPECTED_MAP
 EXPECTED_MAP[ko]="ed97aceba19c0a"
 EXPECTED_MAP[ja]="e381afe381b3e381bd0a"
 EXPECTED_MAP[latin]="61c3a0c3a1c3a2c3a4c78e0a"
+EXPECTED_MAP[sub/ko]="ed97aceba19c0a"
+EXPECTED_MAP[sub/ja]="e381afe381b3e381bd0a"
+EXPECTED_MAP[sub/latin]="61c3a0c3a1c3a2c3a4c78e0a"
 
 # Directories to test
-DIRS=("ko" "ja" "latin")
+DIRS=("ko" "ja" "latin" "sub/ko" "sub/ja" "sub/latin")
 
 for d in "${DIRS[@]}"; do
     EXPECTED="${EXPECTED_MAP[$d]}"
@@ -97,9 +100,12 @@ echo "[7] Checking NFD rename results..."
 EXPECTED_MAP[ko]="e18492e185a6e186afe18485e185a90a"
 EXPECTED_MAP[ja]="e381afe381b2e38299e381bbe3829a0a"
 EXPECTED_MAP[latin]="6161cc8061cc8161cc8261cc8861cc8c0a"
+EXPECTED_MAP[sub/ko]="e18492e185a6e186afe18485e185a90a"
+EXPECTED_MAP[sub/ja]="e381afe381b2e38299e381bbe3829a0a"
+EXPECTED_MAP[sub/latin]="6161cc8061cc8161cc8261cc8861cc8c0a"
 
 # Directories to test
-DIRS=("ko" "ja" "latin")
+DIRS=("ko" "ja" "latin" "sub/ko" "sub/ja" "sub/latin")
 
 for d in "${DIRS[@]}"; do
     EXPECTED="${EXPECTED_MAP[$d]}"
