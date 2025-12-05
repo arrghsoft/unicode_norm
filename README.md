@@ -11,6 +11,13 @@ cmake -S . -B build -DUNICODE_NORM_LIBRARY_STATIC_LINK=OFF
 cmake --build build
 ```
 
+## Test
+
+```bash
+./test.sh
+```
+
+
 ## Install
 
 ```bash
