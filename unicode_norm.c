@@ -1,16 +1,23 @@
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <sys/stat.h>
-#include <fts.h>
-#include <getopt.h>
 
+#ifndef _WIN32
+    #include <unistd.h>
+    #include <libgen.h>
+    #include <sys/stat.h>
+    #include <fts.h>
+#else
+    #include <windows.h>
+    #include <direct.h>
+    #include <sys/stat.h>
+#endif
+
+#include <getopt.h>
 #include <utf8proc.h>
 #include "version.h"
 
 #define STR_BUFFER 2048
-#define LOG_LEVEL INFO
+#define LOG_LEVEL LOG_INFO
 #define PATH_SEP_STR "/"
 
 enum NormalizationForm {
@@ -28,11 +35,11 @@ static const char *form_names[] = {
 };
 
 enum LogLevel {
-    ERROR,
-    WARNING,
-    INFO,
-    VERBOSE,
-    DEBUG
+    LOG_ERROR,
+    LOG_WARNING,
+    LOG_INFO,
+    LOG_VERBOSE,
+    LOG_DEBUG
 };
 
 static const struct option long_opts[] = {
@@ -72,7 +79,7 @@ int main(const int argc, char *argv[]) {
                 is_recursive = true;
                 break;
             case 'v':
-                global_log_level = VERBOSE;
+                global_log_level = LOG_VERBOSE;
                 break;
             case 'f':
                 parse_form();
@@ -82,7 +89,7 @@ int main(const int argc, char *argv[]) {
                 is_dry_run = true;
                 break;
             default:
-                print_log("Error: unknown option.", ERROR);
+                print_log("Error: unknown option.", LOG_ERROR);
                 exit(EXIT_FAILURE);
         }
     }
@@ -90,11 +97,11 @@ int main(const int argc, char *argv[]) {
     for (int i = optind; i < argc; i++) {
         char *file_path = argv[i];
         sprintf(string, "File path: %s", file_path);
-        print_log(string, DEBUG);
+        print_log(string, LOG_DEBUG);
 
         FILE *f = fopen(file_path, "r");
         if (f == NULL) {
-            print_log("Error: could not open file.", ERROR);
+            print_log("Error: could not open file.", LOG_ERROR);
             exit(EXIT_FAILURE);
         }
 
@@ -117,7 +124,7 @@ int main(const int argc, char *argv[]) {
                     continue;
                 }
                 sprintf(string, "File entry: %s (%s)", node->fts_path, S_ISDIR(node->fts_statp->st_mode) ? "dir" : "file");
-                print_log(string, DEBUG);
+                print_log(string, LOG_DEBUG);
                 bool updated = rename_file(node->fts_path);
                 updated_cnt += updated ? 1 : 0;
                 total_cnt++;
@@ -126,10 +133,10 @@ int main(const int argc, char *argv[]) {
             fts_close(file_hierarchy);
             if (is_dry_run) {
                 sprintf(string, "Total files: %d, Files that would be updated: %d", total_cnt, updated_cnt);
-                print_log(string, INFO);
+                print_log(string, LOG_INFO);
             } else {
                 sprintf(string, "Total files: %d, Updated files: %d", total_cnt, updated_cnt);
-                print_log(string, INFO);
+                print_log(string, LOG_INFO);
             }
             break;
         }
@@ -159,19 +166,19 @@ void print_log(char *str, enum LogLevel level) {
     }
 
     switch (level) {
-        case ERROR:
+        case LOG_ERROR:
             fprintf(stderr, "%s\n", str);
             break;
-        case WARNING:
+        case LOG_WARNING:
             fprintf(stderr, "%s\n", str);
             break;
-        case INFO:
+        case LOG_INFO:
             printf("%s\n", str);
             break;
-        case VERBOSE:
+        case LOG_VERBOSE:
             printf("%s\n", str);
             break;
-        case DEBUG:
+        case LOG_DEBUG:
             printf("%s\n", str);
             break;
     }
@@ -196,7 +203,7 @@ void convert_to_form(char *path, enum NormalizationForm form, char *buffer) {
             new_basename = (char *) utf8proc_NFKD((uint8_t *) name_part);
             break;
         default:
-            print_log("Error: invalid form.", ERROR);
+            print_log("Error: invalid form.", LOG_ERROR);
             exit(EXIT_FAILURE);
     }
     buffer[0] = '\0';
@@ -236,29 +243,29 @@ bool rename_file(const char *file_path) {
             strcpy(form_string, "UNKNOWN");
         }
         sprintf(string, "File is in form of %s: %s", form_string, file_path);
-        print_log(string, DEBUG);
+        print_log(string, LOG_DEBUG);
     }
     convert_to_form(abs_path, form, path_buffer);
 
     if (is_dry_run) {
         if (strcmp(path_buffer, abs_path) == 0) {
             sprintf(string, "[SKIP] file name already in %s form: %s", form_names[form], file_path);
-            print_log(string, INFO);
+            print_log(string, LOG_INFO);
             return false;
         }
         sprintf(string, "[TARGET] This file will be renamed from %s form to %s form: %s", form_string, form_names[form], file_path);
-        print_log(string, INFO);
+        print_log(string, LOG_INFO);
         return true;
     }
 
     if (strcmp(path_buffer, abs_path) == 0) {
         sprintf(string, "[SKIP] file name already in %s form: %s", form_names[form], file_path);
-        print_log(string, INFO);
+        print_log(string, LOG_INFO);
         return false;
     }
     rename(abs_path, path_buffer);
     sprintf(string, "[SUCCESS] Successfully renamed from %s form to %s form: %s", form_string, form_names[form], file_path);
-    print_log(string, INFO);
+    print_log(string, LOG_INFO);
     return true;
 }
 
@@ -273,7 +280,7 @@ void parse_form() {
         form = NFKD;
     } else {
         print_log("Error: invalid normalization form. "
-                  "Form(--form, -f) should be one of 'NFC', 'NFD', 'NFKC', or 'NFKD'.", ERROR);
+                  "Form(--form, -f) should be one of 'NFC', 'NFD', 'NFKC', or 'NFKD'.", LOG_ERROR);
         exit(EXIT_FAILURE);
     }
 }
