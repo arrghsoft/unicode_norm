@@ -8,3 +8,4 @@ cmake-build-debug/
 build/
 build_s/
 build_d/
+test_env/
