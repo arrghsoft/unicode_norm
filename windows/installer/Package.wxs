@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Package
+    Name="unicode_norm"
+    Manufacturer="Arrghsoft"
+    Version="1.0.1.0"
+    UpgradeCode="64704c33-af9e-4183-9719-6b9dba99719d">
+
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="unicode_norm" />
+    </StandardDirectory>
+
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExe" Bitness="always64">
+        <File Source="../../build/unicode_norm.exe" />
+      </Component>
+
+      <Component Id="ContextMenuNFC" Bitness="always64">
+        <RegistryKey Root="HKCR" Key="*\shell\ConvertToNFC">
+          <RegistryValue Type="string" Value="Convert to NFC" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]unicode_norm.exe" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="*\shell\ConvertToNFC\command">
+          <RegistryValue Type="string"
+            Value="&quot;[INSTALLFOLDER]unicode_norm.exe&quot; -f NFC -r &quot;%1&quot;" />
+        </RegistryKey>
+      </Component>
+
+      <Component Id="ContextMenuNFD" Bitness="always64">
+        <RegistryKey Root="HKCR" Key="*\shell\ConvertToNFD">
+          <RegistryValue Type="string" Value="Convert to NFD" />
+          <RegistryValue Type="string" Name="Icon" Value="[INSTALLFOLDER]unicode_norm.exe" />
+        </RegistryKey>
+        <RegistryKey Root="HKCR" Key="*\shell\ConvertToNFD\command">
+          <RegistryValue Type="string"
+            Value="&quot;[INSTALLFOLDER]unicode_norm.exe&quot; -f NFD -r &quot;%1&quot;" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+
+  </Package>
+</Wix>

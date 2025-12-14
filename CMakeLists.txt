@@ -30,3 +30,14 @@ target_link_libraries(unicode_norm PRIVATE utf8proc)
 
 install(TARGETS unicode_norm
     RUNTIME DESTINATION bin)
+
+if (WIN32)
+    set(WIX_PROJ ${CMAKE_SOURCE_DIR}/windows/installer/Installer.wixproj)
+
+    add_custom_target(msi
+            COMMAND dotnet build ${WIX_PROJ}
+            -c Release
+            -p:BINDIR=${CMAKE_BINARY_DIR}/
+            DEPENDS unicode_norm
+    )
+endif ()
