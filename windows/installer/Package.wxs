@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package
     Name="unicode_norm"
     Manufacturer="Arrghsoft"
     Version="1.0.1.0"
-    UpgradeCode="64704c33-af9e-4183-9719-6b9dba99719d">
+    UpgradeCode="64704c33-af9e-4183-9719-6b9dba99719d"
+    Codepage="65001">
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <Property Id="WIXUI_WELCOMEDLG_TEXT" Value="This program does filename unicode normalization.&#13;&#13;After installation, the following items is going to be added to right click context menu:&#13;• Convert to NFC&#13;• Convert to NFD&#13;&#13;Please click next to install unicode_norm. " />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Installation complete!&#13;&#13;Now you can simply normalize unicode filename with right click menu.&#13;&#13;If you want to remove the program, go to [Add or remove programs] and uninstall unicode_norm." />
 
 
     <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
@@ -46,6 +51,6 @@
     <Feature Id="Main">
       <ComponentGroupRef Id="ProductComponents" />
     </Feature>
-
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
   </Package>
 </Wix>
