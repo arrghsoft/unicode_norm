@@ -1,0 +1,13 @@
+<Project Sdk="WixToolset.Sdk/6.0.0">
+<PropertyGroup>
+    <OutputName>unicode_norm</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+</PropertyGroup>
+
+<ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
+</ItemGroup>
+</Project>

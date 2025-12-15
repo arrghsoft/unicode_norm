@@ -8,3 +8,6 @@ cmake-build-debug/
 build/
 build_s/
 build_d/
+test_env/
+windows/installer/bin
+windows/installer/obj
