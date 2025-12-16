@@ -1,4 +1,4 @@
-<div style="text-align: center;">
+<div align="center" style="text-align: center;">
 <h1 style="margin:0; padding: 0;">unicode_norm</h1>
 <h2 style="margin-top:0.25rem; padding: 0;">Unicode Filename Normalizer</h2>
 <hr>
