@@ -96,8 +96,26 @@ char *utf16_to_utf8(const wchar_t *w) {
 }
 
 void traverse_directory_windows(const wchar_t *dir) {
-    wchar_t search_path[MAX_PATH];
     wchar_t logbuf[STR_BUFFER];
+    DWORD attr = GetFileAttributesW(dir);
+    if (attr == INVALID_FILE_ATTRIBUTES) {
+        swprintf(logbuf, STR_BUFFER, L"GetFileAttributes failed: %ls", dir);
+        char *logbuf_utf8 = utf16_to_utf8(logbuf);
+        print_log(logbuf_utf8, LOG_ERROR);
+        free(logbuf_utf8);
+        return;
+    }
+
+    if ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+        char *path_utf8 = utf16_to_utf8(dir);
+        bool updated = rename_file(path_utf8);
+        updated_cnt += updated ? 1 : 0;
+        total_cnt++;
+        free(path_utf8);
+        return;
+    }
+
+    wchar_t search_path[MAX_PATH];
     WIN32_FIND_DATAW ffd;
     HANDLE hFind = INVALID_HANDLE_VALUE;
     swprintf(search_path, MAX_PATH, L"%ls\\*", dir);
