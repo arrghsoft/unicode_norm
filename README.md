@@ -1,6 +1,5 @@
 <div align="center" style="text-align: center;">
 <h1 style="margin:0; padding: 0;">unicode_norm: Unicode Filename Normalizer</h1>
-<hr>
 <div>
     <p>No more "기획서.pdf" turning into "ㄱㅣㅎㅚㄱ서.pdf"</p>
     <p>No more "プログラム.exe" turning into "フ゜ロク゛ラム.pdf"</p>
