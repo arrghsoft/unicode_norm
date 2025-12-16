@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 project(unicode_norm
         LANGUAGES C
-        VERSION 1.0.1)
+        VERSION 1.1.0)
 
 option(UNICODE_NORM_LIBRARY_STATIC_LINK "Build unicode_norm with statically linked libraries" ON)
 
