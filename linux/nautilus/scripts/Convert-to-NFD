@@ -1,0 +1,4 @@
+#!/bin/bash
+for file in "$@"; do
+  unicode_norm -f NFD -r "$file"
+done
