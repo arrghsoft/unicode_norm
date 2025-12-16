@@ -1,10 +1,11 @@
 <div align="center" style="text-align: center;">
 <h1 style="margin:0; padding: 0;">unicode_norm: Unicode Filename Normalizer</h1>
 <div>
-    <p>No more "기획서.pdf" turning into "ㄱㅣㅎㅚㄱ서.pdf"</p>
-    <p>No more "プログラム.exe" turning into "フ゜ロク゛ラム.pdf"</p>
-    <p>No more "résumé.pdf" turning into "re´sume´.pdf"</p>
+    No more "기획서.pdf" turning into "ㄱㅣㅎㅚㄱ서.pdf"<br>
+    No more "プログラム.exe" turning into "フ゜ロク゛ラム.pdf"<br>
+    No more "résumé.pdf" turning into "re´sume´.pdf"<br>
 </div>
+<br>
 <div>
     <p style="margin-bottom: 0.25rem;">Supported Platforms</p>
 	<img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0" alt=macOS">
