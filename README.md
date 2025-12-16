@@ -5,7 +5,7 @@
     <p>No more "プログラム.exe" turning into "フ゜ロク゛ラム.pdf"</p>
     <p>No more "résumé.pdf" turning into "re´sume´.pdf"</p>
 </div>
----
+`---`
 <div>
     <p style="margin-bottom: 0.25rem;">Supported Platforms</p>
 	<img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0" alt=macOS">
