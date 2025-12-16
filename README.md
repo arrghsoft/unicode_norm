@@ -1,23 +1,24 @@
 <div align="center" style="text-align: center;">
-<h1 style="margin:0; padding: 0;">unicode_norm</h1>
-<h2 style="margin-top:0.25rem; padding: 0;">Unicode Filename Normalizer</h2>
+<h1 style="margin:0; padding: 0;">unicode_norm: Unicode Filename Normalizer</h1>
 <hr>
 <div>
     <p>No more "기획서.pdf" turning into "ㄱㅣㅎㅚㄱ서.pdf"</p>
     <p>No more "プログラム.exe" turning into "フ゜ロク゛ラム.pdf"</p>
     <p>No more "résumé.pdf" turning into "re´sume´.pdf"</p>
 </div>
+<hr style="border:1px solid gray">
 <div>
     <p style="margin-bottom: 0.25rem;">Supported Platforms</p>
 	<img src="https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0" alt=macOS">
     <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt=Linux">
     <img src="https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt=Windows">
 </div>
+<hr style="border:1px solid gray">
 <div>
     <p style="margin-bottom: 0.25rem;">Support this project</p>
     <a href="https://www.buymeacoffee.com/arrghsoft" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 </div>
-<hr>
+<hr style="border:1px solid gray">
 
 <p style="text-align: center;" align="center">
   <strong>
@@ -26,7 +27,6 @@
   </strong>
 </p>
 <hr>
-
 </div> 
 
 # unicode_norm: Unicode Filename Normalizer
