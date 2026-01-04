@@ -351,22 +351,24 @@ bool rename_file(const char *file_path) {
 
     char form_string[50];
     form_string[0] = '\0';
-    if (is_dry_run) {
-        bool is_first = true;
-        for (int i = NFC; i < NFKD + 1; i++) {
-            convert_to_form(abs_path, i, path_buffer);
-            if (strcmp(abs_path, path_buffer) == 0) {
-                if (!is_first) {
-                    strcat(form_string, ", ");
-                } else {
-                    is_first = false;
-                }
-                strcat(form_string, form_names[i]);
+
+    bool is_first = true;
+    for (int i = NFC; i < NFKD + 1; i++) {
+        convert_to_form(abs_path, i, path_buffer);
+        if (strcmp(abs_path, path_buffer) == 0) {
+            if (!is_first) {
+                strcat(form_string, ", ");
+            } else {
+                is_first = false;
             }
+            strcat(form_string, form_names[i]);
         }
-        if (is_first) {
-            strcpy(form_string, "UNKNOWN");
-        }
+    }
+    if (is_first) {
+        strcpy(form_string, "UNKNOWN");
+    }
+
+    if (is_dry_run) {
         sprintf(string, "File is in form of %s: %s", form_string, file_path);
         print_log(string, LOG_DEBUG);
     }
